@@ -29,8 +29,10 @@
       "name": "[concat(parameters('storageAccountName'))]",
       "apiVersion": "2021-01-01",
       "location": "[parameters('location')]",
+      "sku":{
+        "name": "[parameters('storageAccountType')]"
+      },
       "properties": {
-        "accountType": "[parameters('storageAccountType')]"
       }
     }
   ],

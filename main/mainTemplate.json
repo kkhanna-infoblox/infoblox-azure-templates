@@ -5,6 +5,7 @@
     "artifactsBaseUrl": {
       "type": "string",
       "metadata": {
+        "artifactsBaseUrl": "/",
         "description": "The base URL for dependent assets"
       },
       "defaultValue": "https://raw.githubusercontent.com/infobloxopen/infoblox-azure-templates/master/main/"
@@ -303,33 +304,157 @@
     "version": "[parameters('niosVersion')]",
     "OSDiskName":"[concat(parameters('vmName'), uniqueString(resourceGroup().id))]",
     "vmStorageAccountContainerName":"disks",
+
     "vnetResourceId":"[if(equals(parameters('vnetNewOrExisting'), 'new'), variables('vnet-new'), variables('vnet-existing'))]",
     "vnet-new":"[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
     "vnet-existing":"[resourceId(parameters('virtualNetworkExistingRGName'),'Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
     "subnet1ResourceId":"[concat(variables('vnetResourceId'),'/subnets/',parameters('subnet1Name'))]",
     "subnet2ResourceId":"[concat(variables('vnetResourceId'),'/subnets/',parameters('subnet2Name'))]",
     "nsgName": "[concat(parameters('vmName'),'-securityGroup')]",
-    "nicPrimaryName": "[concat(parameters('vmName'),'-lan1')]",
-    "nicSecondaryName": "[concat(parameters('vmName'),'-mgmt')]",
+    "vnetNewParams":{
+      "location": {
+        "value": "[parameters('location')]"
+      },
+      "virtualNetworkName":{
+        "value":"[parameters('virtualNetworkName')]"
+      },
+      "virtualNetworkAddressPrefix":{
+        "value":"[parameters('virtualNetworkAddressPrefix')]"
+      },
+      "subnet1Name":{
+        "value":"[parameters('subnet1Name')]"
+      },
+      "subnet1Prefix":{
+        "value":"[parameters('subnet1Prefix')]"
+      },
+      "subnet2Name":{
+        "value":"[parameters('subnet2Name')]"
+      },
+      "subnet2Prefix":{
+        "value":"[parameters('subnet2Prefix')]"
+      }
+    },
+
     "publicIPExistingOrNone": "[replace(parameters('publicIPNewOrExistingOrNone'), 'new', 'existing')]",
     "publicIpResourceId": "[if(equals(parameters('publicIPNewOrExistingOrNone'), 'none'), '', if(equals(parameters('publicIPNewOrExistingOrNone'), 'new'), variables('publicIp-new'), variables('publicIp-existing')))]",
     "publicIp-new": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]",
     "publicIp-existing": "[resourceId(parameters('publicIPExistingRGName'),concat('Microsoft.Network','/','publicIPAddresses'),parameters('publicIPAddressName'))]",
     "publicIPAddressType":"Dynamic",
+    "publicIPSetupURL":"[concat(parameters('artifactsBaseUrl'),'/publicip-',parameters('publicIPNewOrExistingOrNone'),'.json')]",
+    "publicIPNewParams":{
+      "location": {
+        "value": "[parameters('location')]"
+      },
+      "publicIPAddressName":{
+        "value":"[parameters('publicIPAddressName')]"
+      },
+      "publicIPAddressType":{
+        "value":"[variables('publicIPAddressType')]"
+      },
+      "dnsPrefix":{
+        "value":"[parameters('publicIPDnsName')]"
+      }
+    },
+
+    "virtualNetworkSetupURL":"[concat(parameters('artifactsBaseUrl'),'/vnet-',parameters('vnetNewOrExisting'),'.json')]",
+    "nicPrimaryName": "[concat(parameters('vmName'),'-lan1')]",
+    "nicSecondaryName": "[concat(parameters('vmName'),'-mgmt')]",
+    "nicPrimarySetupURL":"[concat(parameters('artifactsBaseUrl'),'/nic-pip',variables('publicIPExistingOrNone'),'.json')]",
+    "nicSecondarySetupURL":"[concat(parameters('artifactsBaseUrl'),'/nic-pipnone.json')]",
+    "nicprimaryNoneParams":{
+      "location": {
+        "value": "[parameters('location')]"
+      },
+      "nicName":{
+        "value":"[variables('nicPrimaryName')]"
+      },
+      "IPAddress":{
+        "value":"[parameters('subnet1StartAddress')]"
+      },
+      "subnetId":{
+        "value":"[variables('subnet1ResourceId')]"
+      },
+      "networkSecurityGroupId":{
+        "value":"[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+      }
+    },
+    "nicprimaryExistingParams":{
+      "location": {
+        "value": "[parameters('location')]"
+      },
+      "nicName":{
+        "value":"[variables('nicPrimaryName')]"
+      },
+      "IPAddress":{
+        "value":"[parameters('subnet1StartAddress')]"
+      },
+      "subnetId":{
+        "value":"[variables('subnet1ResourceId')]"
+      },
+      "publicIPAddressId":{
+        "value":"[variables('publicIpResourceId')]"
+      },
+      "networkSecurityGroupId":{
+        "value":"[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+      }
+    },
+
     "storageAccountForLogsName": "[if(parameters('storageAccountForLogsNeedFix'), variables('storageAccountForLogsNameNeedFix-true'), variables('storageAccountForLogsNameNeedFix-false'))]",
     "storageAccountForLogsNameNeedFix-true":"[concat(parameters('newStorageAccountForLogsName'), 'logs')]",
     "storageAccountForLogsNameNeedFix-false":"[parameters('newStorageAccountForLogsName')]",
     "storageAccountSetupURL":"[concat(parameters('artifactsBaseUrl'),'/storageAccount-',parameters('storageAccountNewOrExisting'),'.json')]",
     "storageAccountForLogsSetupURL":"[concat(parameters('artifactsBaseUrl'),'/storageAccount-',parameters('storageAccountForLogsNewOrExisting'),'.json')]",
-    "publicIPSetupURL":"[concat(parameters('artifactsBaseUrl'),'/publicip-',parameters('publicIPNewOrExistingOrNone'),'.json')]",
-    "virtualNetworkSetupURL":"[concat(parameters('artifactsBaseUrl'),'/vnet-',parameters('vnetNewOrExisting'),'.json')]",
-    "nicPrimarySetupURL":"[concat(parameters('artifactsBaseUrl'),'/nic-pip',variables('publicIPExistingOrNone'),'.json')]",
-    "nicSecondarySetupURL":"[concat(parameters('artifactsBaseUrl'),'/nic-pipnone.json')]",
+    "storageAccountNewParams":{
+      "location": {
+        "value": "[parameters('location')]"
+      },
+      "storageAccountType":{
+        "value":"[parameters('storageAccountType')]"
+      },
+      "storageAccountName":{
+        "value":"[parameters('newStorageAccountName')]"
+      }
+    },
+    "storageAccountExistingParams":{
+      "storageAccountName":{
+        "value":"[parameters('newStorageAccountName')]"
+      },
+      "storageAccountExistingRG":{
+        "value":"[parameters('storageAccountExistingRG')]"
+      }
+    },
+    "storageAccountForLogsNewParams":{
+      "location": {
+        "value": "[parameters('location')]"
+      },
+      "storageAccountType":{
+        "value":"[parameters('storageAccountForLogsType')]"
+      },
+      "storageAccountName":{
+        "value":"[variables('storageAccountForLogsName')]"
+      }
+    },
+    "storageAccountForLogsExistingParams":{
+      "storageAccountName":{
+        "value":"[variables('storageAccountForLogsName')]"
+      },
+      "storageAccountExistingRG":{
+        "value":"[parameters('storageAccountForLogsExistingRG')]"
+      }
+    },
 
     "customData": "[base64(concat('temp_license: ', variables('tempLicense'), '\n', 'default_admin_password: ', variables('sq'), replace(parameters('adminPassword'), variables('sq'), concat(variables('sq'), variables('sq'))), variables('sq'), '\n', parameters('customData')))]",
 
     "availabilitySetNewOrNone": "[replace(parameters('availabilitySetNewOrExistingOrNone'), 'existing', 'none')]",
     "availabilitySetExistingOrNone": "[replace(parameters('availabilitySetNewOrExistingOrNone'), 'new', 'existing')]",
+    "availabilitySetNewParams":{
+      "location": {
+        "value": "[parameters('location')]"
+      },
+      "availabilitySetName":{
+        "value":"[parameters('availabilitySetName')]"
+      }
+    },
 
     "availabilitySetSetupURL":"[concat(parameters('artifactsBaseUrl'),'/availabilityset-',variables('availabilitySetNewOrNone'),'.json')]",
     "sq":"'",
@@ -352,20 +477,7 @@
           "uri":"[variables('storageAccountSetupURL')]",
           "contentVersion":"1.0.0.0"
         },
-        "parameters":{
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "storageAccountType":{
-            "value":"[parameters('storageAccountType')]"
-          },
-          "storageAccountName":{
-            "value":"[parameters('newStorageAccountName')]"
-          },
-          "storageAccountExistingRG":{
-            "value":"[parameters('storageAccountExistingRG')]"
-          }
-        }
+        "parameters":"[if(equals(parameters('storageAccountNewOrExisting'), 'new'), variables('storageAccountNewParams'), variables('storageAccountExistingParams'))]"
       }
     },
     {
@@ -378,20 +490,7 @@
           "uri":"[variables('storageAccountForLogsSetupURL')]",
           "contentVersion":"1.0.0.0"
         },
-        "parameters":{
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "storageAccountType":{
-            "value":"[parameters('storageAccountForLogsType')]"
-          },
-          "storageAccountName":{
-            "value":"[variables('storageAccountForLogsName')]"
-          },
-          "storageAccountExistingRG":{
-            "value":"[parameters('storageAccountForLogsExistingRG')]"
-          }
-        }
+        "parameters":"[if(equals(parameters('storageAccountNewOrExisting'), 'new'), variables('storageAccountForLogsNewParams'), variables('storageAccountForLogsExistingParams'))]"
       }
     },
     {
@@ -512,32 +611,7 @@
           "uri":"[variables('virtualNetworkSetupURL')]",
           "contentVersion":"1.0.0.0"
         },
-        "parameters":{
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "virtualNetworkName":{
-            "value":"[parameters('virtualNetworkName')]"
-          },
-          "virtualNetworkAddressPrefix":{
-            "value":"[parameters('virtualNetworkAddressPrefix')]"
-          },
-          "subnet1Name":{
-            "value":"[parameters('subnet1Name')]"
-          },
-          "subnet1Prefix":{
-            "value":"[parameters('subnet1Prefix')]"
-          },
-          "subnet2Name":{
-            "value":"[parameters('subnet2Name')]"
-          },
-          "subnet2Prefix":{
-            "value":"[parameters('subnet2Prefix')]"
-          },
-          "vnetExistingRGName":{
-            "value":"[parameters('virtualNetworkExistingRGName')]"
-          }
-        }
+        "parameters":"[if(equals(parameters('vnetNewOrExisting'), 'new'), variables('vnetNewParams'), json('null'))]"
       }
     },
     {
@@ -555,26 +629,7 @@
           "uri":"[variables('nicPrimarySetupURL')]",
           "contentVersion":"1.0.0.0"
         },
-        "parameters":{
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "nicName":{
-            "value":"[variables('nicPrimaryName')]"
-          },
-          "IPAddress":{
-            "value":"[parameters('subnet1StartAddress')]"
-          },
-          "subnetId":{
-            "value":"[variables('subnet1ResourceId')]"
-          },
-          "publicIPAddressId":{
-            "value":"[variables('publicIpResourceId')]"
-          },
-          "networkSecurityGroupId":{
-            "value":"[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
-          }
-        }
+        "parameters":"[if(equals(variables('publicIPExistingOrNone'), 'none'), variables('nicprimaryNoneParams'), variables('nicprimaryExistingParams'))]"
       }
     },
     {
@@ -620,23 +675,7 @@
           "uri":"[variables('publicIPSetupURL')]",
           "contentVersion":"1.0.0.0"
         },
-        "parameters":{
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "publicIPAddressName":{
-            "value":"[parameters('publicIPAddressName')]"
-          },
-          "publicIPAddressType":{
-            "value":"[variables('publicIPAddressType')]"
-          },
-          "dnsPrefix":{
-            "value":"[parameters('publicIPDnsName')]"
-          },
-          "publicIpRGName":{
-            "value":"[parameters('publicIPExistingRGName')]"
-          }
-        }
+        "parameters":"[if(equals(parameters('publicIPNewOrExistingOrNone'), 'new'), variables('publicIPNewParams'), json('null'))]"
       }
     },
     {
@@ -649,14 +688,7 @@
           "uri":"[variables('availabilitySetSetupURL')]",
           "contentVersion":"1.0.0.0"
         },
-        "parameters":{
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "availabilitySetName":{
-            "value":"[parameters('availabilitySetName')]"
-          }
-        }
+        "parameters":"[if(equals(parameters('availabilitySetNewOrExistingOrNone'), 'new'), variables('availabilitySetNewParams'), json('null'))]"
       }
     },
     {
@@ -736,11 +768,6 @@
                 "enabled": "true",
                 "storageUri": "[reference('SettingUpStorageAccountForLogs').outputs.endpointURL.value]"
               }
-            }
-          },
-          "availabilitySet": {
-            "value" : {
-              "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
             }
           }
         }
